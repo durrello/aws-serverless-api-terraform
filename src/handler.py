@@ -8,11 +8,15 @@ import uuid
 import boto3
 
 TABLE_NAME = os.environ.get("TABLE_NAME", "items")
-_dynamodb = boto3.resource("dynamodb")
+_resource = None
 
 
 def _table():
-    return _dynamodb.Table(TABLE_NAME)
+    # Lazy init so importing this module doesn't require AWS config (e.g. in CI tests).
+    global _resource
+    if _resource is None:
+        _resource = boto3.resource("dynamodb")
+    return _resource.Table(TABLE_NAME)
 
 
 def _response(status, body):
